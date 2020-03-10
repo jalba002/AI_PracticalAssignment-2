@@ -23,20 +23,26 @@ public class FSM_Ant : FiniteStateMachine
     private PathFollowing pathFollowing;
 
     [Header("State configuration")] private State currentState;
-    private System.Random randomNumber = new System.Random(Guid.NewGuid().GetHashCode());
+    private System.Random randomNumber;
 
+    private Vector3 deliverPosition;
     private Path transportPath;
     private Path exitPath;
 
     void Start()
     {
-        seeker = GetComponent<Seeker>();
-        transportingObject = GetComponentInChildren<Transform>().gameObject;
-
-        Vector3 transportingPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlackboard.Instance.wayPoints.Length)].transform.position; //Select a random point from WAYPOINTS
+        randomNumber = new System.Random(Guid.NewGuid().GetHashCode());
         
-        transportPath = seeker.StartPath(this.gameObject.transform.position, GeneratePoint(transportingPosition)); //Calculate first path.
-        exitPath = seeker.StartPath(transportingPosition, transportingPosition); //Calculate second path.
+        seeker = GetComponent<Seeker>();
+        pathFollowing = GetComponent<PathFollowing>();
+        
+        //transportingObject = GetComponentInChildren<Transform>().gameObject;
+
+deliverPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlackboard.Instance.wayPoints.Length)].transform.position; //Select a random point from WAYPOINTS
+        
+        transportPath = seeker.StartPath(this.gameObject.transform.position, GeneratePoint(deliverPosition)); //Calculate first path.
+        
+        pathFollowing.enabled = false;
     }
 
     public override void ReEnter()
@@ -50,7 +56,10 @@ public class FSM_Ant : FiniteStateMachine
         switch (currentState)
         {
             case State.Initial:
-                ChangeState(State.Transporting);
+                if (transportPath != null && seeker.IsDone())
+                {
+                    ChangeState(State.Transporting);
+                }
                 break;
             case State.Transporting:
                 //TODO If point reached, leave the transporting object and change to exit.
@@ -91,6 +100,7 @@ public class FSM_Ant : FiniteStateMachine
                 break;
             case State.Exiting:
                 //pathFeeder.target = antBlackboard.exitPoints[randomNumber.Next(0, antBlackboard.exitPoints.Length)];
+                exitPath = seeker.StartPath(deliverPosition, AntBlackboard.Instance.exitPoints[randomNumber.Next(0, AntBlackboard.Instance.exitPoints.Length)].transform.position); //Calculate second path.
                 pathFollowing.enabled = true;
                 pathFollowing.path = exitPath;
                 break;
