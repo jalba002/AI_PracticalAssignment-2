@@ -10,6 +10,8 @@ public class AntBlackboard : Singleton<AntBlackboard>
     public string exitTag;
     public GameObject[] exitPoints;
     public GameObject[] wayPoints { get; private set; }
+
+    public float objectReachedRadius = 2f;
     void Awake()
     {
         if (exitPoints.Length <= 0) exitPoints = GameObject.FindGameObjectsWithTag(exitTag);

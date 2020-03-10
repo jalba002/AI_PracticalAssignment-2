@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using FSM;
 using Pathfinding;
 using Steerings;
@@ -8,6 +9,8 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Random = System.Random;
 
+[RequireComponent(typeof(PathFollowing))]
+[RequireComponent(typeof(Seeker))]
 public class FSM_Ant : FiniteStateMachine
 {
     public enum State
@@ -32,16 +35,17 @@ public class FSM_Ant : FiniteStateMachine
     void Start()
     {
         randomNumber = new System.Random(Guid.NewGuid().GetHashCode());
-        
+
         seeker = GetComponent<Seeker>();
         pathFollowing = GetComponent<PathFollowing>();
-        
-        //transportingObject = GetComponentInChildren<Transform>().gameObject;
 
-deliverPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlackboard.Instance.wayPoints.Length)].transform.position; //Select a random point from WAYPOINTS
-        
-        transportPath = seeker.StartPath(this.gameObject.transform.position, GeneratePoint(deliverPosition)); //Calculate first path.
-        
+        transportingObject = this.gameObject.GetComponentsInChildren<Transform>()[1].gameObject;
+
+        deliverPosition = AntBlackboard.Instance
+            .wayPoints[randomNumber.Next(0, AntBlackboard.Instance.wayPoints.Length)].transform
+            .position; //Select a random point from WAYPOINTS
+
+        StartCoroutine(CalculateAllPaths());
         pathFollowing.enabled = false;
     }
 
@@ -56,16 +60,33 @@ deliverPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlack
         switch (currentState)
         {
             case State.Initial:
-                if (transportPath != null && seeker.IsDone())
+                if (transportPath != null)
                 {
                     ChangeState(State.Transporting);
                 }
+
                 break;
             case State.Transporting:
                 //TODO If point reached, leave the transporting object and change to exit.
+                if (Vector3.Distance(this.gameObject.transform.position, deliverPosition) <=
+                    AntBlackboard.Instance.objectReachedRadius && exitPath != null)
+                {
+                    ChangeState(State.Exiting);
+                    break;
+                }
+
                 break;
             case State.Exiting:
                 //TODO if exitpoint reached, destroy this.
+                if (Vector3.Distance(this.gameObject.transform.position,
+                        (Vector3) exitPath.path[exitPath.path.Count - 1].position) <=
+                    AntBlackboard.Instance.objectReachedRadius)
+                {
+                    Debug.Log("BYE!");
+                    Destroy(this.gameObject);
+                    break;
+                }
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -79,11 +100,17 @@ deliverPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlack
             case State.Initial:
                 break;
             case State.Transporting:
-                pathFollowing.enabled = false;
+                //pathFollowing.enabled = false;
                 //TODO remove egg from child?
+                transportingObject.transform.parent = null;
+                GraphNode node = AstarPath.active.GetNearest(transportingObject.transform.position,
+                    NNConstraint.Default).node;
+                transportingObject.transform.position = (Vector3) node.position;
+                transportingObject.tag = transportingObject.name.ToString().Equals("egg") ? "EGG" : "SEED";
+                transportingObject = null;
                 break;
             case State.Exiting:
-                pathFollowing.enabled = false;
+                //pathFollowing.enabled = false;
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -95,14 +122,19 @@ deliverPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlack
                 break;
             case State.Transporting:
                 //pathFeeder.target = antBlackboard.;
-                pathFollowing.enabled = true;
+                Debug.Log("Now transporting!");
+                pathFollowing.wayPointReachedRadius = AntBlackboard.Instance.objectReachedRadius;
+                pathFollowing.currentWaypointIndex = 0;
                 pathFollowing.path = transportPath;
+                pathFollowing.enabled = true;
                 break;
             case State.Exiting:
                 //pathFeeder.target = antBlackboard.exitPoints[randomNumber.Next(0, antBlackboard.exitPoints.Length)];
-                exitPath = seeker.StartPath(deliverPosition, AntBlackboard.Instance.exitPoints[randomNumber.Next(0, AntBlackboard.Instance.exitPoints.Length)].transform.position); //Calculate second path.
-                pathFollowing.enabled = true;
+                Debug.Log("Now exiting!");
+                pathFollowing.wayPointReachedRadius = AntBlackboard.Instance.objectReachedRadius;
+                pathFollowing.currentWaypointIndex = 0;
                 pathFollowing.path = exitPath;
+                pathFollowing.enabled = true;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -118,5 +150,21 @@ deliverPosition = AntBlackboard.Instance.wayPoints[randomNumber.Next(0, AntBlack
         Vector3 returnValue = (Vector3) node.position;
 
         return returnValue;
+    }
+
+    IEnumerator CalculateAllPaths()
+    {
+        Debug.Log("Calculating transporting route!");
+        transportPath =
+            seeker.StartPath(this.gameObject.transform.position,
+                GeneratePoint(deliverPosition)); //Calculate first path.
+        yield return seeker.IsDone();
+        Debug.Log("Calculating exit!");
+        exitPath = seeker.StartPath(GeneratePoint(deliverPosition),
+            AntBlackboard.Instance
+                .exitPoints[randomNumber.Next(0, AntBlackboard.Instance.exitPoints.Length - 1)].transform
+                .position);
+        yield return seeker.IsDone();
+        Debug.Log("Done calculating paths!");
     }
 }
