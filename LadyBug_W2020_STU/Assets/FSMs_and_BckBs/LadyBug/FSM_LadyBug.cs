@@ -31,6 +31,7 @@ namespace FSM
         private GameObject otherEgg;
 
         private int ID; // 1 = egg ; 2 = seed
+        private bool seedDropped; //seed dropped by lady bug
 
         void Start()
         {
@@ -41,6 +42,8 @@ namespace FSM
             pathFeeder.target = null;
             storePoint = blackBoard.GetRandomStorePoint();
             hatchingPoint = blackBoard.GetRandomHatchingPoint();
+            seedDropped = false;
+
         }
 
         public override void Exit()
@@ -103,6 +106,14 @@ namespace FSM
                     }
                     break;
                 case State.ReachingSeed:
+
+                    egg = SensingUtils.FindInstanceWithinRadius(gameObject, "EGG", blackBoard.eggLastChanceRadius);
+                    if (egg != null)
+                    {
+                        ChangeState(State.ReachingEgg);
+                        break;
+                    }
+
                     if (seed.tag != "SEED")
                     {
                         ChangeState(State.Wandering);
@@ -116,6 +127,15 @@ namespace FSM
                     }
                     break;
                 case State.TransportingSeed:
+
+                    egg = SensingUtils.FindInstanceWithinRadius(gameObject, "EGG", blackBoard.eggLastChanceRadius);
+                    if (egg != null)
+                    {
+                        seedDropped = true;
+                        ChangeState(State.ReachingEgg);
+                        break;
+                    }
+
                     if (SensingUtils.DistanceToTarget(gameObject, storePoint) < blackBoard.storeReachedRadius)
                     {
                         ChangeState(State.Wandering);
@@ -185,7 +205,11 @@ namespace FSM
                     pathFeeder.target = null;
                     break;
                 case State.TransportingSeed:
-                    seed.tag = "SEED_ON_STOREPOINT";
+                    if (seedDropped)
+                        seed.tag = "SEED";
+                    else
+                        seed.tag = "SEED_ON_STOREPOINT";
+                    seedDropped = false;
                     seed.transform.parent = null;
                     pathFeeder.enabled = false;
                     pathFeeder.target = null;
