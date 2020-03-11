@@ -12,7 +12,7 @@ public class AntSpawner : MonoBehaviour
     [Header("Resources")] public GameObject seedAnt;
     public GameObject eggAnt;
 
-    [Header("Spawning settings")] private byte seedChance = 80;
+    [Header("Spawning settings")] private byte seedChance = 20;
 
     private float spawnTimer = 15f;
     private float currentTimer;

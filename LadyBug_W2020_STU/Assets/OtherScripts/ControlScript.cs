@@ -14,8 +14,6 @@ public class ControlScript : MonoBehaviour
         cam = Camera.main;
         eggPrefab = Resources.Load<GameObject>("EGG");
         seedPrefab = Resources.Load<GameObject>("SEED");
-      
-
     }
 
     // Update is called once per frame
@@ -50,8 +48,5 @@ public class ControlScript : MonoBehaviour
             egg.transform.position = position;
             egg.tag = "EGG";
         }
-
-        
-
     }
 }
