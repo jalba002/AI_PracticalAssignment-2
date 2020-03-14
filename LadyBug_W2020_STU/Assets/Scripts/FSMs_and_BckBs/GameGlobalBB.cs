@@ -5,17 +5,18 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEngine;
 
-public class AntBlackboard : Singleton<AntBlackboard>
+//external agent to store all the way points shared by the entities in the scene
+public class GameGlobalBB : Singleton<GameGlobalBB>
 {
-    public string exitTag;
-    public GameObject[] exitPoints;
     public GameObject[] wayPoints { get; private set; }
 
-    public float objectReachedRadius = 2f;
     void Awake()
     {
-        if (exitPoints.Length <= 0) exitPoints = GameObject.FindGameObjectsWithTag(exitTag);
         wayPoints = GameObject.FindGameObjectsWithTag("WAYPOINT");
     }
 
+    public GameObject GetRandomWanderPoint()
+    {
+        return wayPoints[UnityEngine.Random.Range(0, wayPoints.Length)];
+    }
 }

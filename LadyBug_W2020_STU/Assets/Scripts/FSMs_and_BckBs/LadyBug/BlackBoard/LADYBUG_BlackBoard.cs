@@ -3,7 +3,7 @@ using System.Collections;
 
 public class LADYBUG_BlackBoard : MonoBehaviour
 {
-    [Header("LadyBug Patrolling FSM parameters")]
+    [Header("LadyBug FSM parameters")]
     public float eggDetectedRadius = 50.0f;
     public float eggReachedRadius = 2.0f;
     public float eggRandomDetectedRadius = 180.0f;
@@ -15,6 +15,7 @@ public class LADYBUG_BlackBoard : MonoBehaviour
     public float storeReachedRadius = 5.0f;
     public float hatchingReachedRadius = 5.0f;
 
+    [Header("LadyBug FSM store and hatching points")]
     public GameObject[] storePoints;
     public GameObject[] hatchingPoints;
 

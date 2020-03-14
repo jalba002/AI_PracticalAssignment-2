@@ -12,9 +12,9 @@ public class AntSpawner : MonoBehaviour
     [Header("Resources")] public GameObject seedAnt;
     public GameObject eggAnt;
 
-    [Header("Spawning settings")] private byte seedChance = 80;
+    [Header("Spawning settings")] public byte seedChance = 80;
 
-    private float spawnTimer = 15f;
+    public float spawnTimer = 15f;
     private float currentTimer;
 
     [Header("Random properties")] System.Random randomNumber = new System.Random(Guid.NewGuid().GetHashCode());
@@ -42,7 +42,7 @@ public class AntSpawner : MonoBehaviour
         {
             currentTimer = spawnTimer + randomNumber.Next(-10, 10);
         }
-        else if(currentTimer > 0)
+        else if (currentTimer > 0)
         {
             currentTimer -= Time.deltaTime;
         }
@@ -52,12 +52,9 @@ public class AntSpawner : MonoBehaviour
     {
         if (currentTimer <= 0f)
         {
-            Instantiate(randomNumber.Next(0, 101) < seedChance ? seedAnt : eggAnt,
-                this.gameObject.transform.position,
-                Quaternion.identity);
+            Instantiate(randomNumber.Next(0, 101) < seedChance ? seedAnt : eggAnt, this.gameObject.transform.position, Quaternion.identity);
             return true;
         }
-
         return false;
     }
 }

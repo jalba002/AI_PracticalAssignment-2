@@ -30,8 +30,7 @@ namespace FSM
         private GameObject egg;
         private GameObject otherEgg;
 
-        private int ID; // 1 = egg ; 2 = seed
-        private bool seedDropped; //seed dropped by lady bug
+        private bool seedDropped; //seed dropped by ladybug
 
         void Start()
         {
@@ -68,7 +67,7 @@ namespace FSM
                 case State.Wandering:
                     if (SensingUtils.DistanceToTarget(gameObject, wanderPoint) < blackBoard.wanderReachedRadius)
                     {
-                        wanderPoint = GameBlackboard.Instance.GetRandomWanderPoint();
+                        wanderPoint = GameGlobalBB.Instance.GetRandomWanderPoint();
                         pathFeeder.target = wanderPoint;
                         break;
                     }
@@ -106,7 +105,6 @@ namespace FSM
                     }
                     break;
                 case State.ReachingSeed:
-
                     egg = SensingUtils.FindInstanceWithinRadius(gameObject, "EGG", blackBoard.eggLastChanceRadius);
                     if (egg != null)
                     {
@@ -127,7 +125,6 @@ namespace FSM
                     }
                     break;
                 case State.TransportingSeed:
-
                     egg = SensingUtils.FindInstanceWithinRadius(gameObject, "EGG", blackBoard.eggLastChanceRadius);
                     if (egg != null)
                     {
@@ -143,7 +140,6 @@ namespace FSM
                     }
                     break;
                 case State.ReachingEgg:
-
                     if (egg != null)
                     {
                         if (egg.tag != "EGG")
@@ -232,7 +228,7 @@ namespace FSM
             switch (newState)
             {
                 case State.Wandering:
-                    wanderPoint = GameBlackboard.Instance.GetRandomWanderPoint();
+                    wanderPoint = GameGlobalBB.Instance.GetRandomWanderPoint();
                     pathFeeder.target = wanderPoint;
                     pathFeeder.enabled = true;
                     break;
