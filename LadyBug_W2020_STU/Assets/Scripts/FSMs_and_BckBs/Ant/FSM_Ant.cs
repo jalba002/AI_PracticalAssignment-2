@@ -136,7 +136,7 @@ public class FSM_Ant : FiniteStateMachine
     {
         transportPath = seeker.StartPath(this.gameObject.transform.position, GeneratePoint(deliverPosition)); //Calculate first path.
         yield return seeker.IsDone();
-        exitPath = seeker.StartPath(GeneratePoint(deliverPosition), AntGlobalBB.Instance.exitPoints[randomNumber.Next(0, AntGlobalBB.Instance.exitPoints.Length - 1)].transform.position);
+        exitPath = seeker.StartPath(GeneratePoint(deliverPosition), AntGlobalBB.Instance.exitPoints[randomNumber.Next(0, AntGlobalBB.Instance.exitPoints.Length)].transform.position);
         yield return seeker.IsDone();
     }
 }
